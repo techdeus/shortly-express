@@ -5,7 +5,8 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
-
+// const sessions = require('.//session')
+// const User = require('./models/user');
 const app = express();
 
 app.set('views', `${__dirname}/views`);
@@ -16,17 +17,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 
+// console.log({User})
 
-app.get('/', 
-(req, res) => {
-  res.render('index');
-});
-
+// get Link Creation Page
 app.get('/create', 
 (req, res) => {
   res.render('index');
 });
 
+// get the links page
 app.get('/links', 
 (req, res, next) => {
   models.Links.getAll()
@@ -38,6 +37,7 @@ app.get('/links',
     });
 });
 
+// post a new link page
 app.post('/links', 
 (req, res, next) => {
   var url = req.body.url;
@@ -77,6 +77,70 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
+// get the signup page
+app.get('/signup', 
+  (req, res) => {
+  res.render(app.get('views') + '/signup');
+});
+
+// get the login page
+app.get('/login', 
+  (req, res) => {
+  res.render(app.get('views') + '/login');
+
+});
+
+// new user sign up page
+app.post('/signup',
+  (req, res) => {
+
+    models.Users.create(req.body)
+  
+    .then(function(user) {
+      res.redirect('/');
+
+    }).error(function(error) {
+      res.redirect('/signup');
+    })    
+});
+
+
+app.get('/', 
+(req, res) => {
+  res.render('index');
+});
+
+app.post('/login',
+  (req, res) => {
+    var user = {
+      username: req.body.username
+    };
+    // console.log(req.body)
+    var typedPassword = req.body.password;
+    // console.log({typedPassword})
+    
+    
+    models.Users.get(user)
+    // console.log(req.body);
+    .then(function(obj) {
+      if (obj) {
+        var password = obj.password;
+        var salt = obj.salt;
+        if (models.Users.compare(typedPassword, password, salt)){
+          res.redirect('/');  
+        } else {
+          res.redirect('/login');
+        }
+     
+    }
+      res.redirect('/login');
+    }).error(function(error) {
+      res.redirect('/login');
+    })    
+});
+
+
 
 
 
