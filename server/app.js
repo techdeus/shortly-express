@@ -21,58 +21,58 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // get Link Creation Page
 app.get('/create', 
-(req, res) => {
-  res.render('index');
-});
+  (req, res) => {
+    res.render('index');
+  });
 
 // get the links page
 app.get('/links', 
-(req, res, next) => {
-  models.Links.getAll()
-    .then(links => {
-      res.status(200).send(links);
-    })
-    .error(error => {
-      res.status(500).send(error);
-    });
-});
+  (req, res, next) => {
+    models.Links.getAll()
+      .then(links => {
+        res.status(200).send(links);
+      })
+      .error(error => {
+        res.status(500).send(error);
+      });
+  });
 
 // post a new link page
 app.post('/links', 
-(req, res, next) => {
-  var url = req.body.url;
-  if (!models.Links.isValidUrl(url)) {
+  (req, res, next) => {
+    var url = req.body.url;
+    if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
-    return res.sendStatus(404);
-  }
+      return res.sendStatus(404);
+    }
 
-  return models.Links.get({ url })
-    .then(link => {
-      if (link) {
+    return models.Links.get({ url })
+      .then(link => {
+        if (link) {
+          throw link;
+        }
+        return models.Links.getUrlTitle(url);
+      })
+      .then(title => {
+        return models.Links.create({
+          url: url,
+          title: title,
+          baseUrl: req.headers.origin
+        });
+      })
+      .then(results => {
+        return models.Links.get({ id: results.insertId });
+      })
+      .then(link => {
         throw link;
-      }
-      return models.Links.getUrlTitle(url);
-    })
-    .then(title => {
-      return models.Links.create({
-        url: url,
-        title: title,
-        baseUrl: req.headers.origin
+      })
+      .error(error => {
+        res.status(500).send(error);
+      })
+      .catch(link => {
+        res.status(200).send(link);
       });
-    })
-    .then(results => {
-      return models.Links.get({ id: results.insertId });
-    })
-    .then(link => {
-      throw link;
-    })
-    .error(error => {
-      res.status(500).send(error);
-    })
-    .catch(link => {
-      res.status(200).send(link);
-    });
-});
+  });
 
 /************************************************************/
 // Write your authentication routes here
@@ -81,15 +81,16 @@ app.post('/links',
 // get the signup page
 app.get('/signup', 
   (req, res) => {
-  res.render(app.get('views') + '/signup');
-});
+  // console.log('headers', req.headers);
+    res.render(app.get('views') + '/signup');
+  });
 
 // get the login page
 app.get('/login', 
   (req, res) => {
-  res.render(app.get('views') + '/login');
+    res.render(app.get('views') + '/login');
 
-});
+  });
 
 // new user sign up page
 app.post('/signup',
@@ -97,19 +98,19 @@ app.post('/signup',
 
     models.Users.create(req.body)
   
-    .then(function(user) {
-      res.redirect('/');
+      .then(function(user) {
+        res.redirect('/');
 
-    }).error(function(error) {
-      res.redirect('/signup');
-    })    
-});
+      }).error(function(error) {
+        res.redirect('/signup');
+      });    
+  });
 
 
 app.get('/', 
-(req, res) => {
-  res.render('index');
-});
+  (req, res) => {
+    res.render('index');
+  });
 
 app.post('/login',
   (req, res) => {
@@ -123,22 +124,22 @@ app.post('/login',
     
     models.Users.get(user)
     // console.log(req.body);
-    .then(function(obj) {
-      if (obj) {
-        var password = obj.password;
-        var salt = obj.salt;
-        if (models.Users.compare(typedPassword, password, salt)){
-          res.redirect('/');  
-        } else {
-          res.redirect('/login');
-        }
+      .then(function(obj) {
+        if (obj) {
+          var password = obj.password;
+          var salt = obj.salt;
+          if (models.Users.compare(typedPassword, password, salt)) {
+            res.redirect('/');  
+          } else {
+            res.redirect('/login');
+          }
      
-    }
-      res.redirect('/login');
-    }).error(function(error) {
-      res.redirect('/login');
-    })    
-});
+        }
+        res.redirect('/login');
+      }).error(function(error) {
+        res.redirect('/login');
+      });    
+  });
 
 
 

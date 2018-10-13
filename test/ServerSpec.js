@@ -338,6 +338,8 @@ describe('', function() {
             Cookie: 'shortlyid=8a864482005bcc8b968f2b18f8f7ea490e577b20'
           }
         });
+        // console.log({requestWithoutCookies})
+        // console.log({requestWithCookies})
         var requestWithMultipleCookies = httpMocks.createRequest({
           headers: {
             Cookie: 'shortlyid=18ea4fb6ab3178092ce936c591ddbb90c99c9f66; otherCookie=2a990382005bcc8b968f2b18f8f7ea490e990e78; anotherCookie=8a864482005bcc8b968f2b18f8f7ea490e577b20'
